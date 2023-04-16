@@ -1,6 +1,11 @@
+import React from "react";
 import { View, Text, StyleSheet } from "react-native";
 
-const DashboardsScreen = () => {
+import { AuthContext } from "../../App";
+
+const DashboardsScreen = ({ navigation }) => {
+    const { val, setVal } = React.useContext(AuthContext);
+
     return (
         <View style={styles.container}>
             <Text style={styles.text}>Dashboards Screen</Text>

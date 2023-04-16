@@ -1,6 +1,6 @@
 import { View, Text, StyleSheet  } from "react-native";
 
-const SettingsScreen = () => {
+const SettingsScreen = ({navigation}) => {
     return (
         <View style={styles.container}>
             <Text style={styles.text}>Settings Screen</Text>
