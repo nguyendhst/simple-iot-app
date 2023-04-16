@@ -48,7 +48,7 @@ function App() {
     const isDarkMode = useColorScheme() === "dark";
 
     const backgroundStyle = {
-        backgroundColor: "#BEBEBE",
+        backgroundColor: "#212121",
     };
 
     useEffect(() => {

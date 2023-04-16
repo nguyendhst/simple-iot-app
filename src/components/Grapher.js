@@ -1,5 +1,5 @@
 import { LineChart } from "react-native-chart-kit";
-import { Dimensions, View } from "react-native";
+import { Dimensions, View, Text } from "react-native";
 import React, { useEffect, useState } from "react";
 
 const chartConfig = {
@@ -74,23 +74,31 @@ export const Grapher = (props) => {
 
     useEffect(() => {
         if (timeseries !== undefined && timeseries.length !== 0) {
-			//  [{"1": "15:56:15"}, {"0": "15:56:18"}, {"1": "15:56:48"}, {"0": "15:56:51"}]
+            //  [{"1": "15:56:15"}, {"0": "15:56:18"}, {"1": "15:56:48"}, {"0": "15:56:51"}]
 
-            const labels = timeseries.map((item) => {
-				return Object.values(item)[0];
-			});
-			const data = timeseries.map((item) => {
-				return Object.keys(item)[0];
-			});
+            let labels = [];
+            let data = [];
+
+            timeseries.forEach((element) => {
+                labels.push(Object.values(element)[0]);
+                data.push(Object.keys(element)[0]);
+            });
 
             setLabels(labels);
             setData(data);
-            setUnit(kind === "humidity" ? "g.m-3" : "°C");
         } else {
             setLabels(["12:12"]);
-            setData([1]);
+            setData(["1"]);
         }
     }, [timeseries]);
+
+    //useEffect(() => {
+    //	if (kind === "temperature") {
+    //		setUnit("°C");
+    //	} else if (kind === "humidity") {
+    //		setUnit("%");
+    //	}
+    //}, [kind]);
 
     /// logging
     useEffect(() => {
@@ -98,11 +106,28 @@ export const Grapher = (props) => {
         console.log("graph data: ", data);
     }, [labels, data]);
 
-    return (
-        <View
-            style={{ flex: 1, alignItems: "center", justifyContent: "center" }}
-        >
-            {generateLineChart(labels, data, unit)}
-        </View>
+    return labels.length === 0 || data.length === 0 ? (
+        <LineChart
+            data={{
+                labels: labels,
+                datasets: [
+                    {
+                        data: data,
+                    },
+                ],
+            }}
+            width={Dimensions.get("window").width - 50} // from react-native
+            height={120}
+            yAxisSuffix={unit}
+            yAxisInterval={1} // optional, defaults to 1
+            chartConfig={chartConfig}
+            bezier
+            style={{
+                marginVertical: 13,
+                borderRadius: 10,
+            }}
+        />
+    ) : (
+        <Text>no data</Text>
     );
 };
