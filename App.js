@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
 import Paho from "paho-mqtt";
-import  Constants  from 'expo-constants';
+import Constants from "expo-constants";
 
 const apiKey = Constants.manifest.extra.apiKey;
 const apiUsr = Constants.manifest.extra.apiUsr;
@@ -33,7 +33,7 @@ import LoginScreen from "./src/components/LoginScreen";
 import SettingsScreen from "./src/components/SettingsScreen";
 
 const Stack = createStackNavigator();
-const AuthContext = createContext();
+const DashboardContext = createContext();
 const AllFeedsDataContext = createContext();
 
 const Tab = createBottomTabNavigator();
@@ -42,7 +42,7 @@ const PORT = "1883";
 const HOST = "ws://io.adafruit.com/mqtt";
 
 function App() {
-    const [user, setUser] = useState(null);
+    const [data, setData] = useState(null);
     const [feeds, setFeeds] = useState([]);
     const [mtqqClient, setMqttClient] = useState(null);
     const isDarkMode = useColorScheme() === "dark";
@@ -55,30 +55,47 @@ function App() {
         const client = new Paho.Client(HOST, PORT);
         client.onConnectionLost = (responseObject) => {
             console.log("Connection lost:", responseObject.errorMessage);
+            // reconnect
+            client.connect({
+                onSuccess: () => {
+                    console.log("Connected to the MQTT broker");
+                    client.subscribe(apiUsr + "/feeds/+");
+                },
+                onFailure: (error) => {
+                    console.log("Failed to connect:", error.errorMessage);
+                },
+                userName: apiUsr,
+                password: apiKey,
+            });
         };
 
         client.onMessageArrived = (message) => {
-            console.log("Message arrived:", message.payloadString);
+			hours = new Date().getHours();
+			minutes = new Date().getMinutes();
+			seconds = new Date().getSeconds();
+			time = hours + ":" + minutes + ":" + seconds;
+            console.log("Message arrived:", message.payloadString, message.destinationName);
+			setData(message.payloadString+" "+message.destinationName+" "+time);
         };
 
         client.connect({
             onSuccess: () => {
                 console.log("Connected to the MQTT broker");
-				client.subscribe(apiUsr + "/feeds/+");
+                client.subscribe(apiUsr + "/feeds/+");
             },
             onFailure: (error) => {
                 console.log("Failed to connect:", error.errorMessage);
             },
-			
-			userName: apiUsr,
-			password: apiKey,
+
+            userName: apiUsr,
+            password: apiKey,
         });
 
         setMqttClient(client);
     }, []);
 
     return (
-        <AuthContext.Provider value={{ val: user, setVal: setUser }}>
+        <DashboardContext.Provider value={{ data, setData }}>
             <AllFeedsDataContext.Provider
                 value={{ val: feeds, setVal: setFeeds }}
             >
@@ -145,7 +162,7 @@ function App() {
                     </SafeAreaView>
                 </NavigationContainer>
             </AllFeedsDataContext.Provider>
-        </AuthContext.Provider>
+        </DashboardContext.Provider>
     );
 }
 
@@ -159,4 +176,4 @@ const styles = StyleSheet.create({
 });
 
 export default App;
-export { AuthContext };
+export { DashboardContext };
